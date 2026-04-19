@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<style>
+body {
+  background:black;
+  color:white;
+  font-family:Arial;
+  padding:20px;
+}
+
+.card {
+  border:1px solid gray;
+  padding:15px;
+  margin:10px;
+  border-radius:10px;
+}
+
+button {
+  padding:10px;
+  background:green;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🎟️ Admin Panel</h1>
+
+<div id="list"></div>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBaPN1a6qKdycroI-_IMLQA6ry7qPzrtRo",
+  authDomain: "magneetoz.firebaseapp.com",
+  databaseURL: "https://magneetoz-default-rtdb.firebaseio.com",
+  projectId: "magneetoz"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+function loadData() {
+
+  const dbRef = ref(db, "orders/");
+
+  onValue(dbRef, (snapshot) => {
+
+    document.getElementById("list").innerHTML = "";
+
+    snapshot.forEach((child) => {
+
+      let data = child.val();
+      let id = child.key;
+
+      let whatsappMsg = `Hello ${data.name} 👋
+
+🎉 Your booking is CONFIRMED!
+
+🎭 Event: Befizool ki Baatein (Poetry + Comedy Show)  
+📅 Date: 25 April 2026  
+⏰ Time: 5:00 PM  
+📍 Venue: Artist Voice Studio, Shastri Nagar, Delhi  
+🚇  Take exit from Gate No.2 of Shastri Nagar Metro Station
+
+🪑 Tickets Booked: ${data.tickets}  
+💰 Price per ticket: ₹${data.price}  
+💵 Total Paid: ₹${data.price * data.tickets}  
+🧾 Booking ID: ${data.payment_id}  
+
+📌 Important Instructions:
+• Please arrive 15 minutes early  
+• Show this message at entry  
+• Follow event guidelines  
+
+📍 Live Location:
+https://maps.app.goo.gl/dP6t5DQ7nszwjaJC6 
+
+
+
+Need help? Reply on this WhatsApp 👍  
+
+Thank you ❤️  
+— Team MAGNEETOZ 🚀`;
+
+      let whatsappLink = `https://wa.me/91${data.phone}?text=${encodeURIComponent(whatsappMsg)}`;
+
+      document.getElementById("list").innerHTML += `
+        <div class="card">
+          <h3>${data.name}</h3>
+          <p>📞 ${data.phone}</p>
+          <p>🎟️ ${data.tickets} tickets</p>
+          <p>💰 Price per ticket: ₹${data.price || "N/A"}</p>
+          <p>💵 Total: ₹${(data.price || 0) * (data.tickets || 0)}</p>
+          <p>🧾 ${data.payment_id}</p>
+          <p>🕒 ${new Date(data.time).toLocaleString()}</p>
+
+          <a href="${whatsappLink}" target="_blank">
+            <button>WhatsApp</button>
+          </a>
+
+          <br><br>
+
+          <button onclick="deleteTicket('${id}')" style="background:red;">
+            Delete
+          </button>
+        </div>
+      `;
+    });
+
+  });
+}
+
+window.deleteTicket = function(id){
+  if(confirm("Delete this booking?")){
+    remove(ref(db, "orders/" + id));
+  }
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
